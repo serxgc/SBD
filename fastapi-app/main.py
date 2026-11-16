@@ -4,7 +4,14 @@ from pymongo import MongoClient
 import os, requests
 
 app = FastAPI(title="API NoSQL (vulnerable)")
-mongo = MongoClient(os.getenv("MONGO_HOST", "mongo"), 27017)
+MONGO_USER = os.getenv("MONGO_USER")
+MONGO_PASS = os.getenv("MONGO_PASS")
+if MONGO_USER:
+    mongo = MongoClient(os.getenv("MONGO_HOST", "mongo"), 27017,
+                        username=MONGO_USER, password=MONGO_PASS,
+                        authSource="tienda")
+else:
+    mongo = MongoClient(os.getenv("MONGO_HOST", "mongo"), 27017)
 db = mongo[os.getenv("MONGO_DATABASE", "tienda")]
 
 class Login(BaseModel):
@@ -17,20 +24,24 @@ class Pedido(BaseModel):
 
 # ----- Login VULNERABLE (NoSQLi) -----
 @app.post("/login_mongo")
-async def login(req: Request):
-    data = await req.json()
-    # ❌ acepta operadores $ en credenciales
-    user = db.usuarios.find_one({"username": data.get("username"),
-                                 "password": data.get("password")}, {"_id": 0})
+def login(cred: Login):            # <- body validado como Login (str, str)
+    user = db.usuarios.find_one(
+        {"username": cred.username, "password": cred.password},
+        {"_id": 0}
+    )
     if user:
         return {"msg": "ok"}
     raise HTTPException(status_code=401, detail="Bad creds")
-
 # ----- Búsqueda ES VULNERABLE -----
 @app.get("/articulos")
-def art_search(q: str = "*"):
-    return requests.get("http://elasticsearch:9200/articulos/_search",
-                        params={"q": q}).json()
+def art_search(q: str = "", size: int = 10):
+    size = min(size, 50)
+    body = {
+        "size": size,
+        "query": { "match": { "titulo": q } }
+    }
+    r = requests.get("http://elasticsearch:9200/articulos/_search", json=body)
+    return r.json()
 
 # ----- CRUD pedidos -----
 @app.get("/pedidos")

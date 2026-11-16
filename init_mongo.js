@@ -10,3 +10,9 @@ db.pedidos.insertMany([
   { producto: "Raton",   cantidad: 1 },
   { producto: "Monitor", cantidad: 3 }
 ]);
+
+db.createUser({
+  user: "appuser",
+  pwd: "apppass",
+  roles: [{ role: "readWrite", db: "tienda" }]
+});
