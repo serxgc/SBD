@@ -1,6 +1,6 @@
 # SegBD Lab01 — Seguridad en NoSQL (MongoDB + Elasticsearch + FastAPI)
 
-Laboratorio de la Actividad 1 de Seguridad en Bases de Datos, Blockchain y Big Data (UNIR).
+Laboratorio de la Actividad 1 de Seguridad en Bases de Datos, Blockchain y Big Data.
 Entorno deliberadamente inseguro, atacado y después defendido de forma controlada.
 
 ## Levantar el entorno
